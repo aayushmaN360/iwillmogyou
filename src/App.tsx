@@ -18,12 +18,13 @@ export default function App() {
   const [scannerInitialMode, setScannerInitialMode] = useState<'camera' | 'upload'>('camera');
   const [currentResult, setCurrentResult] = useState<MogResult>(SAMPLE_RESULTS.finalBoss);
   
-  // Battle mode player indexing
+  // Battle mode player state (starts un-scanned)
   const [targetBattlePlayer, setTargetBattlePlayer] = useState<1 | 2 | null>(null);
   const [battlePlayer1Result, setBattlePlayer1Result] = useState<MogResult | null>(null);
   const [battlePlayer2Result, setBattlePlayer2Result] = useState<MogResult | null>(null);
   const [battlePlayer1Name, setBattlePlayer1Name] = useState('Player 1');
   const [battlePlayer2Name, setBattlePlayer2Name] = useState('Challenger');
+
   // Check URL query parameters for test automation & autostart
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -73,6 +74,12 @@ export default function App() {
     setActiveView('results');
   };
 
+  const handleChallengeFromResults = () => {
+    setBattlePlayer1Result(currentResult);
+    setBattlePlayer2Result(null); // Waiting for challenger!
+    setActiveView('battle');
+  };
+
   return (
     <div className="min-h-screen bg-[#07090D] text-[#F5F7FA] flex flex-col selection:bg-cyan-500 selection:text-black">
       {/* Header */}
@@ -105,7 +112,7 @@ export default function App() {
           <ResultsView
             result={currentResult}
             onTryAgain={() => handleStartScan('camera')}
-            onChallengeFriend={() => setActiveView('battle')}
+            onChallengeFriend={handleChallengeFromResults}
           />
         )}
 
@@ -124,8 +131,28 @@ export default function App() {
 
         {activeView === 'battle' && (
           <FriendBattle
-            initialPlayer1Result={currentResult}
+            player1Result={battlePlayer1Result}
+            player2Result={battlePlayer2Result}
+            player1Name={battlePlayer1Name}
+            player2Name={battlePlayer2Name}
+            onUpdatePlayerName={(p, name) => {
+              if (p === 1) setBattlePlayer1Name(name);
+              else setBattlePlayer2Name(name);
+            }}
             onScanForPlayer={handleScanForBattlePlayer}
+            onResetBattle={() => {
+              setBattlePlayer1Result(null);
+              setBattlePlayer2Result(null);
+            }}
+            onLoadDemoOpponent={(p, res, name) => {
+              if (p === 1) {
+                setBattlePlayer1Result(res);
+                setBattlePlayer1Name(name);
+              } else {
+                setBattlePlayer2Result(res);
+                setBattlePlayer2Name(name);
+              }
+            }}
             onBackToHome={() => setActiveView('home')}
           />
         )}
@@ -138,9 +165,9 @@ export default function App() {
         <CameraScanner
           initialMode={scannerInitialMode}
           onScanComplete={handleScanComplete}
-         onCancel={() => {
-          setIsScannerOpen(false);
-          setTargetBattlePlayer(null);
+          onCancel={() => {
+            setIsScannerOpen(false);
+            setTargetBattlePlayer(null);
           }}
         />
       )}
