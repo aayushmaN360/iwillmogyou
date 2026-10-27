@@ -20,9 +20,10 @@ export default function App() {
   
   // Battle mode player indexing
   const [targetBattlePlayer, setTargetBattlePlayer] = useState<1 | 2 | null>(null);
-  const [battlePlayer1Result, setBattlePlayer1Result] = useState<MogResult>(SAMPLE_RESULTS.finalBoss);
-  const [battlePlayer2Result, setBattlePlayer2Result] = useState<MogResult>(SAMPLE_RESULTS.auraFarmer);
-
+  const [battlePlayer1Result, setBattlePlayer1Result] = useState<MogResult | null>(null);
+  const [battlePlayer2Result, setBattlePlayer2Result] = useState<MogResult | null>(null);
+  const [battlePlayer1Name, setBattlePlayer1Name] = useState('Player 1');
+  const [battlePlayer2Name, setBattlePlayer2Name] = useState('Challenger');
   // Check URL query parameters for test automation & autostart
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -137,7 +138,10 @@ export default function App() {
         <CameraScanner
           initialMode={scannerInitialMode}
           onScanComplete={handleScanComplete}
-          onCancel={() => setIsScannerOpen(false)}
+         onCancel={() => {
+          setIsScannerOpen(false);
+          setTargetBattlePlayer(null);
+          }}
         />
       )}
 
